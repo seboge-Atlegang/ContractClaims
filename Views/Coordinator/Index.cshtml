@@ -1,0 +1,49 @@
+﻿@model IEnumerable<ContractClaims.Models.LecturerClaim>
+
+@{
+    ViewData["Title"] = "Verify Claims";
+}
+
+<h2>Claims Verification</h2>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Lecturer</th>
+            <th>Date Submitted</th>
+            <th>Document</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Lecturer.FirstName</td>
+                <td>@item.DateSubmitted.ToString("yyyy-MM-dd")</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.DocumentPath))
+                    {
+                        <a href="@Url.Content(item.DocumentPath)" target="_blank">Download</a>
+                    }
+                    else
+                    {
+                        <span>No Document</span>
+                    }
+                </td>
+                <td>@item.Status</td>
+                <td>
+                    <form asp-action="Approve" asp-route-id="@item.Id" method="post" style="display:inline;">
+                        <button class="btn btn-success btn-sm">Approve</button>
+                    </form>
+
+                    <form asp-action="Reject" asp-route-id="@item.Id" method="post" style="display:inline;">
+                        <button class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+

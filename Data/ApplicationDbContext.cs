@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ContractClaims.Models;
+using System.Security.Claims;
 
 namespace ContractClaims.Data
 {
@@ -10,10 +11,15 @@ namespace ContractClaims.Data
 
         public DbSet<LecturerClaim> LecturerClaims { get; set; }
 
+        
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            // Add any model customizations if needed
+
+            // Store enum as string
+            builder.Entity<LecturerClaim>()
+                .Property(c => c.Status)
+                .HasConversion<string>();
         }
     }
 }

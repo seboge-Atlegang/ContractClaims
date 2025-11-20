@@ -1,9 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ContractClaims.Models;
 
 namespace ContractClaims.Models
 {
-    public enum ClaimStatus { Pending, Approved, Rejected, Settled }
+    public enum ClaimStatus
+    {
+        Pending,
+        Approved,
+        Rejected
+    }
 
     public class LecturerClaim
     {
@@ -30,7 +36,7 @@ namespace ContractClaims.Models
 
         public string Notes { get; set; }
 
-        public ClaimStatus Status { get; set; } = ClaimStatus.Pending;
+        public ClaimStatus Status { get; set; } 
 
         public string DocumentPath { get; set; } // relative wwwroot path to uploaded file
 
@@ -38,3 +44,8 @@ namespace ContractClaims.Models
         public DateTime? ReviewedAt { get; set; }
     }
 }
+
+
+
+
+

@@ -1,0 +1,53 @@
+﻿@model ContractClaims.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    var seeded = ViewBag.SeededCredentials as List<(string Role, string Email, string Password, string FirstName, string LastName, decimal? HourlyRate)>;
+}
+
+<link rel="stylesheet" href="~/css/site.css" />
+
+<div class="login-container">
+    <h2>Contract Monthly Claim System — Login</h2>
+
+    <form asp-controller="Account" asp-action="Login" method="post">
+        <div class="form-group">
+            <label asp-for="Email"></label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" class="form-control" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <input asp-for="RememberMe" /> <label asp-for="RememberMe">Remember me</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+
+    <hr />
+    <div class="seeded-credentials">
+        <h4>Seeded Accounts (use these to log in)</h4>
+        <table class="table">
+            <thead><tr><th>Role</th><th>Email</th><th>Password</th></tr></thead>
+            <tbody>
+                @foreach (var s in seeded)
+                {
+                    <tr>
+                        <td>@s.Role</td>
+                        <td>@s.Email</td>
+                        <td><strong>@s.Password</strong></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

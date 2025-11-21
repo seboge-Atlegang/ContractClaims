@@ -11,7 +11,7 @@ namespace ContractClaims.Models
         Rejected
     }
 
-    public class LecturerClaim
+    public class Claim
     {
         [Key]
         public int Id { get; set; }
@@ -28,23 +28,32 @@ namespace ContractClaims.Models
         [Range(0, 1000)]
         public decimal HoursWorked { get; set; }
 
-        [Range(0, 10000)]
-        public decimal HourlyRate { get; set; }
+       /* [Range(0, 10000)]
+        public decimal HourlyRate { get; set; }*/
+
+        [Range(0, 100000)][Column(TypeName = "decimal(18,2)")] public decimal HourlyRate { get; set; }
 
         [DataType(DataType.Currency)]
         public decimal TotalPayment => HoursWorked * HourlyRate;
 
         public string Notes { get; set; }
 
-        public ClaimStatus Status { get; set; } 
+        public ClaimStatus Status { get; set; }
 
-        public string DocumentPath { get; set; } // relative wwwroot path to uploaded file
+        public DateTime SubmittedDate { get; set; }
+
+        public string ? DocumentPath { get; set; } // relative wwwroot path to uploaded file
 
         public string ReviewedById { get; set; }
         public DateTime? ReviewedAt { get; set; }
     }
 }
 
+
+
+   
+
+    
 
 
 

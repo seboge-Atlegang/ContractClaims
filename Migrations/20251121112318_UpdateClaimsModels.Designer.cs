@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ContractClaims.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251120214654_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251121112318_UpdateClaimsModels")]
+    partial class UpdateClaimsModels
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -103,7 +103,7 @@ namespace ContractClaims.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("ContractClaims.Models.LecturerClaim", b =>
+            modelBuilder.Entity("ContractClaims.Models.Claim", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -115,7 +115,6 @@ namespace ContractClaims.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("DocumentPath")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("HourlyRate")
@@ -143,11 +142,14 @@ namespace ContractClaims.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("SubmittedDate")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("LecturerId");
 
-                    b.ToTable("LecturerClaims");
+                    b.ToTable("Claims");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -283,7 +285,7 @@ namespace ContractClaims.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ContractClaims.Models.LecturerClaim", b =>
+            modelBuilder.Entity("ContractClaims.Models.Claim", b =>
                 {
                     b.HasOne("ContractClaims.Models.ApplicationUser", "Lecturer")
                         .WithMany()

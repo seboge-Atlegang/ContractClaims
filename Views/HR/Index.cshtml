@@ -1,0 +1,24 @@
+﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+@{
+    ViewData["Title"] = "HR Dashboard";
+}
+<h2>HR - Users</h2>
+<table class="table">
+    <thead><tr><th>Email</th><th>Name</th><th>Hourly Rate</th></tr></thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            // We used IdentityUser in controller; cast to ApplicationUser if required
+            <tr><td>@u.Email</td><td>-</td><td>-</td></tr>
+        }
+    </tbody>
+</table>
+
+<div class="card">
+    <h3>Reports</h3>
+    <form asp-action="GenerateApprovedClaimsPdf" method="post">
+        <label>From</label><input type="date" name="from" />
+        <label>To</label><input type="date" name="to" />
+        <button type="submit" class="btn-primary">Generate PDF</button>
+    </form>
+</div>

@@ -11,7 +11,7 @@ namespace ContractClaims.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+           /* migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
                 {
@@ -25,7 +25,7 @@ namespace ContractClaims.Migrations
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+           migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
                 {
@@ -74,7 +74,7 @@ namespace ContractClaims.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+           migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
@@ -95,7 +95,7 @@ namespace ContractClaims.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+           migrationBuilder.CreateTable(
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
@@ -115,7 +115,7 @@ namespace ContractClaims.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+           migrationBuilder.CreateTable(
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
@@ -160,7 +160,7 @@ namespace ContractClaims.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LecturerClaims",
+                name: "Claims",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -177,9 +177,9 @@ namespace ContractClaims.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LecturerClaims", x => x.Id);
+                    table.PrimaryKey("PK_Claims", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_LecturerClaims_AspNetUsers_LecturerId",
+                        name: "FK_Claims_AspNetUsers_LecturerId",
                         column: x => x.LecturerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -203,7 +203,7 @@ namespace ContractClaims.Migrations
                 table: "AspNetUserClaims",
                 column: "UserId");
 
-            migrationBuilder.CreateIndex(
+           migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserLogins_UserId",
                 table: "AspNetUserLogins",
                 column: "UserId");
@@ -226,9 +226,9 @@ namespace ContractClaims.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LecturerClaims_LecturerId",
-                table: "LecturerClaims",
-                column: "LecturerId");
+                name: "IX_Claims_LecturerId",
+                table: "Claims",
+                column: "LecturerId");*/
         }
 
         /// <inheritdoc />
@@ -250,7 +250,7 @@ namespace ContractClaims.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "LecturerClaims");
+                name: "Claims");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

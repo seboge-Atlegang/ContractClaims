@@ -1,49 +1,52 @@
-﻿@model IEnumerable<ContractClaims.Models.LecturerClaim>
-
+﻿@model IEnumerable<ContractClaims.Models.Claim>
 @{
-    ViewData["Title"] = "Verify Claims";
+    ViewData["Title"] = "Pending Claims for Review";
 }
 
-<h2>Claims Verification</h2>
+<h2>@ViewBag.Role - Pending Claims for Review</h2>
 
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>Lecturer</th>
-            <th>Date Submitted</th>
-            <th>Document</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+<div class="card p-3">
+    <table class="table table-responsive">
+        <thead style="background:#D8BFD8;color:#222;">
             <tr>
-                <td>@item.Lecturer.FirstName</td>
-                <td>@item.DateSubmitted.ToString("yyyy-MM-dd")</td>
-                <td>
-                    @if (!string.IsNullOrEmpty(item.DocumentPath))
-                    {
-                        <a href="@Url.Content(item.DocumentPath)" target="_blank">Download</a>
-                    }
-                    else
-                    {
-                        <span>No Document</span>
-                    }
-                </td>
-                <td>@item.Status</td>
-                <td>
-                    <form asp-action="Approve" asp-route-id="@item.Id" method="post" style="display:inline;">
-                        <button class="btn btn-success btn-sm">Approve</button>
-                    </form>
-
-                    <form asp-action="Reject" asp-route-id="@item.Id" method="post" style="display:inline;">
-                        <button class="btn btn-danger btn-sm">Reject</button>
-                    </form>
-                </td>
+                <th>ID</th>
+                <th>Lecturer</th>
+                <th>Submitted</th>
+                <th>Hours / Rate</th>
+                <th>Amount</th>
+                <th>Document</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
-
+        </thead>
+        <tbody>
+            @foreach (var c in Model)
+            {
+                <tr style="background:@((Model.ToList().IndexOf(c) % 2 == 0) ? "#ffffff" : "#F8F8FF")">
+                    <td>@c.Id</td>
+                    <td>@c.Lecturer?.FullName</td>
+                    <td>@c.DateSubmitted.ToString("yyyy-MM-dd")</td>
+                    <td>@c.HoursWorked / @c.HourlyRate.ToString("C")</td>
+                    <td>@(c.HoursWorked * c.HourlyRate).ToString("C")</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(c.DocumentPath))
+                        {
+                            <a href="@c.DocumentPath" target="_blank">Download</a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                    <td>
+                        <form asp-action="Approve" method="post" style="display:inline;" asp-controller="Coordinator" asp-route-id="@c.Id">
+                            <button class="btn" style="background:#C71585;color:#fff;padding:6px 10px;border-radius:6px;">Approve</button>
+                        </form>
+                        <form asp-action="Reject" method="post" style="display:inline;margin-left:6px;" asp-controller="Coordinator" asp-route-id="@c.Id">
+                            <button class="btn" style="background:#F08080;color:#fff;padding:6px 10px;border-radius:6px;">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

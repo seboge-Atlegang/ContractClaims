@@ -9,7 +9,7 @@ namespace ContractClaims.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> opts) : base(opts) { }
 
-        public DbSet<LecturerClaim> LecturerClaims { get; set; }
+        public DbSet<Models.Claim> Claims { get; set; }
 
         
         protected override void OnModelCreating(ModelBuilder builder)
@@ -17,9 +17,11 @@ namespace ContractClaims.Data
             base.OnModelCreating(builder);
 
             // Store enum as string
-            builder.Entity<LecturerClaim>()
+            builder.Entity<Models.Claim>()
                 .Property(c => c.Status)
                 .HasConversion<string>();
         }
     }
 }
+
+

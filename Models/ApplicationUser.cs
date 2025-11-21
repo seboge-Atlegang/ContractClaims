@@ -5,14 +5,10 @@ namespace ContractClaims.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        [Required, MaxLength(50)]
-        public string FirstName { get; set; }
-
-        [Required, MaxLength(50)]
-        public string LastName { get; set; }
-
-        // Hourly rate for lecturers (nullable for non-lecturers)
-        [DataType(DataType.Currency)]
+        [Required, MaxLength(50)] public string FirstName { get; set; }
+        [Required, MaxLength(50)] public string LastName { get; set; }
         public decimal? HourlyRate { get; set; }
+
+        public string FullName => $"{FirstName} {LastName}";
     }
 }

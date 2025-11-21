@@ -3,8 +3,8 @@ using ContractClaims.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
-using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace ContractClaims.Controllers
@@ -12,89 +12,82 @@ namespace ContractClaims.Controllers
     [Authorize(Roles = "HR")]
     public class HRController : Controller
     {
-        private readonly UserManager<ApplicationUser> _um;
         private readonly ApplicationDbContext _db;
+        private readonly UserManager<ApplicationUser> _um;
 
-        public HRController(UserManager<ApplicationUser> um, ApplicationDbContext db)
+        public HRController(ApplicationDbContext db, UserManager<ApplicationUser> um)
         {
-            _um = um;
             _db = db;
+            _um = um;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Dashboard()
         {
-            var users = _um.Users.ToList();
+            var users = await _um.Users.ToListAsync();
+            var totalUsers = users.Count;
+            var claimsThisMonth = await _db.Claims.CountAsync(c => c.DateSubmitted >= DateTime.UtcNow.AddMonths(-1));
+            ViewBag.TotalUsers = totalUsers;
+            ViewBag.ClaimsThisMonth = claimsThisMonth;
             return View(users);
         }
 
-        // Edit user, Create user actions (use _um.CreateAsync and AddToRoleAsync)
-        // ...
-
-        public IActionResult Reports()
-        {
-            // show UI to generate a report (date range, type)
-            return View();
-        }
+        public IActionResult Reports() => View();
 
         [HttpPost]
-        public IActionResult GenerateReportAsPdf(DateTime? from, DateTime? to)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GenerateApprovedClaimsPdf(DateTime? from, DateTime? to)
         {
-            var qFrom = from ?? DateTime.UtcNow.AddMonths(-1);
-            var qTo = to ?? DateTime.UtcNow;
-            var claims = _db.LecturerClaims
-                .Where(c => c.Status == ClaimStatus.Approved && c.DateSubmitted >= qFrom && c.DateSubmitted <= qTo)
-                .ToList();
+            var f = from ?? DateTime.UtcNow.AddMonths(-1);
+            var t = to ?? DateTime.UtcNow;
+            var claims = await _db.Claims.Include(c => c.Lecturer)
+                .Where(c => c.Status == ClaimStatus.Approved && c.DateSubmitted >= f && c.DateSubmitted <= t)
+                .ToListAsync();
 
-            var pdfBytes = BuildClaimsReportPdf(claims, qFrom, qTo);
-
-            return File(pdfBytes, "application/pdf", $"ApprovedClaims_{qFrom:yyyyMMdd}_{qTo:yyyyMMdd}.pdf");
+            var bytes = CreatePdfBytes(claims, f, t);
+            return File(bytes, "application/pdf", $"ApprovedClaims_{f:yyyyMMdd}_{t:yyyyMMdd}.pdf");
         }
 
-        private byte[] BuildClaimsReportPdf(List<LecturerClaim> claims, DateTime from, DateTime to)
+        private byte[] CreatePdfBytes(List<Claim> claims, DateTime from, DateTime to)
         {
             var doc = Document.Create(container =>
             {
                 container.Page(page =>
                 {
-                    page.Margin(30);
-                    page.Size(PageSizes.A4);
-                    page.Content()
-                        .Column(col =>
+                    page.Size(QuestPDF.Helpers.PageSizes.A4);
+                    page.Margin(20);
+                    page.Header()
+                        .Text($"Approved Claims Report ({from:yyyy-MM-dd} → {to:yyyy-MM-dd})")
+                        .FontSize(16).Bold();
+
+                    page.Content().Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
                         {
-                            col.Item().Text($"Approved Claims Report").FontSize(20).Bold();
-                            col.Item().Text($"From {from:yyyy-MM-dd} To {to:yyyy-MM-dd}");
-                            col.Item().Table(table =>
-                            {
-                                table.ColumnsDefinition(columns =>
-                                {
-                                    columns.ConstantColumn(40);
-                                    columns.RelativeColumn();
-                                    columns.RelativeColumn();
-                                    columns.RelativeColumn();
-                                    columns.RelativeColumn();
-                                });
-
-                                table.Header(header =>
-                                {
-                                    header.Cell().Element(CellStyle).Text("ID");
-                                    header.Cell().Element(CellStyle).Text("Lecturer");
-                                    header.Cell().Element(CellStyle).Text("Hours");
-                                    header.Cell().Element(CellStyle).Text("Rate");
-                                    header.Cell().Element(CellStyle).Text("Total");
-                                });
-
-                                foreach (var c in claims)
-                                {
-                                    table.Cell().Element(CellStyle).Text(c.Id.ToString());
-                                    table.Cell().Element(CellStyle).Text($"{c.Lecturer?.FirstName} {c.Lecturer?.LastName} ({c.Lecturer?.Email})");
-                                    table.Cell().Element(CellStyle).Text(c.HoursWorked.ToString("N2"));
-                                    table.Cell().Element(CellStyle).Text(c.HourlyRate.ToString("C"));
-                                    table.Cell().Element(CellStyle).Text((c.HoursWorked * c.HourlyRate).ToString("C"));
-                                }
-
-                                static IContainer CellStyle(IContainer c) => c.BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(5).PaddingHorizontal(3);
-                            });
+                            columns.ConstantColumn(40);
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
                         });
+
+                        table.Header(header =>
+                        {
+                            header.Cell().Text("ID").Bold();
+                            header.Cell().Text("Lecturer").Bold();
+                            header.Cell().Text("Hours").Bold();
+                            header.Cell().Text("Rate").Bold();
+                            header.Cell().Text("Amount").Bold();
+                        });
+
+                        foreach (var c in claims)
+                        {
+                            table.Cell().Text(c.Id.ToString());
+                            table.Cell().Text($"{c.Lecturer?.FullName} ({c.Lecturer?.Email})");
+                            table.Cell().Text(c.HoursWorked.ToString("N2"));
+                            table.Cell().Text(c.HourlyRate.ToString("C"));
+                            table.Cell().Text((c.HoursWorked * c.HourlyRate).ToString("C"));
+                        }
+                    });
                 });
             });
 

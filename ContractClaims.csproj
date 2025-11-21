@@ -26,4 +26,8 @@
     <ContainerPort Include="8081" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="NewFolder\" />
+  </ItemGroup>
+
 </Project>

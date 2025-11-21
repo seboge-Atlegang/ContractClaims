@@ -1,27 +1,19 @@
 ﻿@model IEnumerable<ContractClaims.Models.Claim>
 @{
-    ViewData["Title"] = "My Claims";
+    ViewData["Title"] = "My Claims Dashboard";
 }
 
-<h2>My Claims</h2>
+<h2>My Claims Dashboard (Welcome @User.Identity.Name)</h2>
 
 <div class="mb-3">
     <a class="btn btn-pink btn-lg" href="/Claims/Create">Submit New Claim</a>
 </div>
 
-<div class="card card-pink p-3">
-    <table class="table table-responsive">
+<div class="card p-3">
+    <h5>Claim History</h5>
+    <table class="table mt-3">
         <thead style="background:#D8BFD8;color:#222;">
-            <tr>
-                <th>ID</th>
-                <th>Date Submitted</th>
-                <th>Lecturer</th>
-                <th>Hours</th>
-                <th>Rate</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Document</th>
-            </tr>
+            <tr><th>ID</th><th>Date</th><th>Hours</th><th>Rate</th><th>Amount</th><th>Status</th></tr>
         </thead>
         <tbody>
             @foreach (var c in Model)
@@ -32,21 +24,10 @@
                 <tr style="background:@((Model.ToList().IndexOf(c) % 2 == 0) ? "#ffffff" : "#F8F8FF")">
                     <td>@c.Id</td>
                     <td>@c.DateSubmitted.ToString("yyyy-MM-dd")</td>
-                    <td>@c.Lecturer?.FullName</td>
                     <td>@c.HoursWorked</td>
                     <td>@c.HourlyRate.ToString("C")</td>
                     <td>@(c.HoursWorked * c.HourlyRate).ToString("C")</td>
                     <td><span class="badge @statusClass">@c.Status</span></td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(c.DocumentPath))
-                        {
-                            <a href="@c.DocumentPath" target="_blank">Download</a>
-                        }
-                        else
-                        {
-                            <span>-</span>
-                        }
-                    </td>
                 </tr>
             }
         </tbody>

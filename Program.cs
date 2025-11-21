@@ -1,50 +1,35 @@
 using ContractClaims.Data;
 using ContractClaims.Models;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ContractClaims.Seed;
-using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=(localdb)\\mssqllocaldb;Database=ContractClaimsDb;Trusted_Connection=True;MultipleActiveResultSets=true";
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+// connection string — adjust to your environment
+var conn = builder.Configuration.GetConnectionString("DefaultConnection")
+           ?? "Server=(localdb)\\mssqllocaldb;Database=ContractClaimsDb;Trusted_Connection=True;";
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+// services
+builder.Services.AddDbContext<ApplicationDbContext>(opts => opts.UseSqlServer(conn));
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opts =>
 {
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireDigit = false;
-    options.Password.RequiredLength = 6;
+    opts.Password.RequiredLength = 6;
+    opts.Password.RequireDigit = true;
+    opts.Password.RequireNonAlphanumeric = false;
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddControllersWithViews();
-
-// Configure upload limits (5 MB)
 builder.Services.Configure<FormOptions>(opts =>
 {
-    opts.MultipartBodyLengthLimit = 5 * 1024 * 1024; // 5MB
+    opts.MultipartBodyLengthLimit = 5 * 1024 * 1024; // 5 MB uploads
 });
+
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Ensure DB and seed
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var db = services.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-    await SeedData.InitializeAsync(userManager, roleManager);
-}
-
-// Static files etc.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -58,6 +43,14 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Account}/{action=Login}/{id?}");
+
+using (var scope = app.Services.CreateScope())
+{
+    var svc = scope.ServiceProvider;
+    var db = svc.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+    await SeedData.InitializeAsync(svc);
+}
 
 app.Run();

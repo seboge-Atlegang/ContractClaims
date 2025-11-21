@@ -20,14 +20,14 @@ namespace ContractClaims.Controllers
 
         public IActionResult Index()
         {
-            var pending = _db.LecturerClaims.Where(c => c.Status == ClaimStatus.Pending).OrderBy(c => c.DateSubmitted).ToList();
+            var pending = _db.Claims.Where(c => c.Status == ClaimStatus.Pending).OrderBy(c => c.DateSubmitted).ToList();
             return View(pending);
         }
 
         [HttpPost]
         public async Task<IActionResult> Review(int id, string actionType)
         {
-            var claim = await _db.LecturerClaims.FindAsync(id);
+            var claim = await _db.Claims.FindAsync(id);
             if (claim == null) return NotFound();
 
             var user = await _userManager.GetUserAsync(User);

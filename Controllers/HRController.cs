@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using QuestPDF.Fluent;
-using QuestPDF.Infrastructure;
 
 namespace ContractClaims.Controllers
 {
@@ -13,85 +11,140 @@ namespace ContractClaims.Controllers
     public class HRController : Controller
     {
         private readonly ApplicationDbContext _db;
-        private readonly UserManager<ApplicationUser> _um;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public HRController(ApplicationDbContext db, UserManager<ApplicationUser> um)
+        public HRController(ApplicationDbContext db,
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager)
         {
             _db = db;
-            _um = um;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
+        // -------------------------------------------------------------
+        // HR DASHBOARD
+        // -------------------------------------------------------------
         public async Task<IActionResult> Dashboard()
         {
-            var users = await _um.Users.ToListAsync();
-            var totalUsers = users.Count;
-            var claimsThisMonth = await _db.Claims.CountAsync(c => c.DateSubmitted >= DateTime.UtcNow.AddMonths(-1));
-            ViewBag.TotalUsers = totalUsers;
-            ViewBag.ClaimsThisMonth = claimsThisMonth;
+            var allClaims = await _db.Claims
+                .Include(c => c.Lecturer)
+                .OrderByDescending(c => c.DateSubmitted)
+                .ToListAsync();
+
+            ViewBag.TotalClaims = allClaims.Count;
+            ViewBag.PendingClaims = allClaims.Count(c => c.Status == ClaimStatus.Pending);
+            ViewBag.ApprovedClaims = allClaims.Count(c => c.Status == ClaimStatus.Approved);
+
+            if (allClaims.Count > 0)
+                ViewBag.ApprovalRate = $"{(int)((double)ViewBag.ApprovedClaims / allClaims.Count * 100)}%";
+            else
+                ViewBag.ApprovalRate = "0%";
+
+            ViewBag.RecentClaims = allClaims.Take(8).ToList();
+
+            var allUsers = await _userManager.Users.ToListAsync();
+            return View("Dashboard", allUsers);
+        }
+
+        // -------------------------------------------------------------
+        // USER LIST
+        // -------------------------------------------------------------
+        public async Task<IActionResult> Users()
+        {
+            var users = await _userManager.Users.ToListAsync();
             return View(users);
         }
 
-        public IActionResult Reports() => View();
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GenerateApprovedClaimsPdf(DateTime? from, DateTime? to)
+        // -------------------------------------------------------------
+        // ADD NEW USER (GET)
+        // -------------------------------------------------------------
+        public IActionResult CreateUser()
         {
-            var f = from ?? DateTime.UtcNow.AddMonths(-1);
-            var t = to ?? DateTime.UtcNow;
-            var claims = await _db.Claims.Include(c => c.Lecturer)
-                .Where(c => c.Status == ClaimStatus.Approved && c.DateSubmitted >= f && c.DateSubmitted <= t)
-                .ToListAsync();
-
-            var bytes = CreatePdfBytes(claims, f, t);
-            return File(bytes, "application/pdf", $"ApprovedClaims_{f:yyyyMMdd}_{t:yyyyMMdd}.pdf");
+            ViewBag.Roles = new List<string> { "Lecturer", "Coordinator", "Manager", "HR" };
+            return View();
         }
 
-        private byte[] CreatePdfBytes(List<Claim> claims, DateTime from, DateTime to)
+        // -------------------------------------------------------------
+        // ADD NEW USER (POST)
+        // -------------------------------------------------------------
+        [HttpPost]
+        public async Task<IActionResult> CreateUser(string firstName, string lastName, string email, string role, string password)
         {
-            var doc = Document.Create(container =>
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(role))
             {
-                container.Page(page =>
-                {
-                    page.Size(QuestPDF.Helpers.PageSizes.A4);
-                    page.Margin(20);
-                    page.Header()
-                        .Text($"Approved Claims Report ({from:yyyy-MM-dd} → {to:yyyy-MM-dd})")
-                        .FontSize(16).Bold();
+                TempData["Error"] = "Please fill in all required fields.";
+                return RedirectToAction("CreateUser");
+            }
 
-                    page.Content().Table(table =>
-                    {
-                        table.ColumnsDefinition(columns =>
-                        {
-                            columns.ConstantColumn(40);
-                            columns.RelativeColumn();
-                            columns.RelativeColumn();
-                            columns.RelativeColumn();
-                            columns.RelativeColumn();
-                        });
+            var user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName
+            };
 
-                        table.Header(header =>
-                        {
-                            header.Cell().Text("ID").Bold();
-                            header.Cell().Text("Lecturer").Bold();
-                            header.Cell().Text("Hours").Bold();
-                            header.Cell().Text("Rate").Bold();
-                            header.Cell().Text("Amount").Bold();
-                        });
+            var result = await _userManager.CreateAsync(user, password);
 
-                        foreach (var c in claims)
-                        {
-                            table.Cell().Text(c.Id.ToString());
-                            table.Cell().Text($"{c.Lecturer?.FullName} ({c.Lecturer?.Email})");
-                            table.Cell().Text(c.HoursWorked.ToString("N2"));
-                            table.Cell().Text(c.HourlyRate.ToString("C"));
-                            table.Cell().Text((c.HoursWorked * c.HourlyRate).ToString("C"));
-                        }
-                    });
-                });
-            });
+            if (!result.Succeeded)
+            {
+                TempData["Error"] = string.Join(" | ", result.Errors.Select(e => e.Description));
+                return RedirectToAction("CreateUser");
+            }
 
-            return doc.GeneratePdf();
+            // Ensure role exists
+            if (!await _roleManager.RoleExistsAsync(role))
+                await _roleManager.CreateAsync(new IdentityRole(role));
+
+            // Add role to user
+            await _userManager.AddToRoleAsync(user, role);
+
+            TempData["Success"] = "User account created successfully.";
+            return RedirectToAction("Users");
+        }
+
+        // -------------------------------------------------------------
+        // REPORT PAGE
+        // -------------------------------------------------------------
+        public IActionResult Reports()
+        {
+            return View();
+        }
+
+        // -------------------------------------------------------------
+        // PDF GENERATION
+        // -------------------------------------------------------------
+        [HttpPost]
+        public async Task<IActionResult> GenerateApprovedClaimsPdf(DateTime from, DateTime to)
+        {
+            var approvedClaims = await _db.Claims
+                .Include(c => c.Lecturer)
+                .Where(c => c.Status == ClaimStatus.Approved &&
+                    c.DateSubmitted.Date >= from.Date &&
+                    c.DateSubmitted.Date <= to.Date)
+                .ToListAsync();
+
+            if (!approvedClaims.Any())
+            {
+                TempData["Error"] = "No approved claims found for this date range.";
+                return RedirectToAction("Reports");
+            }
+
+            string output = "Approved Claims Report\n\n";
+
+            foreach (var claim in approvedClaims)
+            {
+                output += $"Lecturer: {claim.Lecturer?.Email}\n" +
+                          $"Hours: {claim.HoursWorked}\n" +
+                          $"Rate: {claim.HourlyRate}\n" +
+                          $"Amount: {(claim.HoursWorked * claim.HourlyRate):C}\n" +
+                          $"Date: {claim.DateSubmitted}\n\n";
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(output);
+            return File(bytes, "text/plain", "ApprovedClaimsReport.txt");
         }
     }
 }

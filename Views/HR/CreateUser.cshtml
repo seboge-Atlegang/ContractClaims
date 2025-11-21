@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "Create User";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-hero mb-4">
+    <div class="hero-title">Create New User Account</div>
+    <div class="hero-sub">Add Lecturers, Coordinators, Managers, or HR staff.</div>
+    <div class="role-pill">HR Administration</div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="card p-4" style="border-left:6px solid #C71585;">
+    <form method="post" asp-action="CreateUser">
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">First Name</label>
+                <input name="firstName" class="form-control" />
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Last Name</label>
+                <input name="lastName" class="form-control" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Email Address *</label>
+            <input name="email" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Password *</label>
+            <input name="password" type="password" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Select Role *</label>
+            <select name="role" class="form-select" required>
+                <option value="">-- Select Role --</option>
+                @foreach (var r in ViewBag.Roles as List<string>)
+                {
+                    <option value="@r">@r</option>
+                }
+            </select>
+        </div>
+
+        <button class="btn btn-deeprose btn-lg">Create User</button>
+
+    </form>
+</div>

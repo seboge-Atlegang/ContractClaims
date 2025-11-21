@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using ContractClaims.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace ContractClaims.Models
 {
@@ -16,45 +16,37 @@ namespace ContractClaims.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
+        // Disable validation on LecturerId completely
+        [ValidateNever]
         public string LecturerId { get; set; }
 
         [ForeignKey(nameof(LecturerId))]
+        [ValidateNever]
         public ApplicationUser Lecturer { get; set; }
 
-        [Required]
         public DateTime DateSubmitted { get; set; } = DateTime.UtcNow;
 
-        [Range(0, 1000)]
+        [Range(0.1, 1000)]
         public decimal HoursWorked { get; set; }
 
-       /* [Range(0, 10000)]
-        public decimal HourlyRate { get; set; }*/
+        [Range(0.1, 100000)]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal HourlyRate { get; set; }
 
-        [Range(0, 100000)][Column(TypeName = "decimal(18,2)")] public decimal HourlyRate { get; set; }
-
-        [DataType(DataType.Currency)]
+        [NotMapped]
         public decimal TotalPayment => HoursWorked * HourlyRate;
 
         public string Notes { get; set; }
 
-        public ClaimStatus Status { get; set; }
+        public ClaimStatus Status { get; set; } = ClaimStatus.Pending;
 
-        public DateTime SubmittedDate { get; set; }
+        [ValidateNever]
+        public string? DocumentPath { get; set; }
 
-        public string ? DocumentPath { get; set; } // relative wwwroot path to uploaded file
+        [ValidateNever]
+        public string? ReviewedById { get; set; }
 
-        public string ReviewedById { get; set; }
+        [ValidateNever]
         public DateTime? ReviewedAt { get; set; }
     }
 }
-
-
-
-   
-
-    
-
-
-
-

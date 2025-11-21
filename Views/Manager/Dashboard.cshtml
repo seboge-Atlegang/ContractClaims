@@ -1,0 +1,25 @@
+﻿@model IEnumerable<ContractClaims.Models.Claim>
+@{
+    ViewData["Title"] = "Manager Dashboard";
+    ViewBag.HeroTitle = $"Welcome, {User.Identity.Name}!";
+    ViewBag.HeroSubtitle = "You are logged in as Manager. Review claims and metrics.";
+    ViewBag.RoleName = "Manager";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@Html.Partial("_DashboardHero")
+
+<!-- reuse content: show pending summary + table (or recent claims) -->
+<div class="row">
+    <div class="col-md-8">
+        @Html.Partial("~/Views/Coordinator/Index.cshtml", Model) @* quick re-use: or copy the card list *@
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>Quick Actions</h5>
+            <a class="btn btn-deeprose w-100 mb-2" href="/Claims/Create">Submit New Claim</a>
+            <a class="btn btn-outline-secondary w-100 mb-2" href="/Claims/Index">View My Claims</a>
+            <a class="btn btn-outline-info w-100" href="/HR/Dashboard">HR Dashboard</a>
+        </div>
+    </div>
+</div>
+

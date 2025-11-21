@@ -1,0 +1,132 @@
+﻿:root {
+    --soft-pink: #f6d8e8;
+    --muted-pink: #D8BFD8;
+    --deep-rose: #C71585;
+    --alt-light: #F8F8FF;
+    --soft-red: #F08080;
+    --success-green: #28a745;
+    --card-radius: 12px;
+    --shadow: 0 6px 18px rgba(199,21,133,0.08);
+}
+
+body {
+    background: #fff;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    color: #222;
+}
+
+/* Hero */
+.dashboard-hero {
+    background: linear-gradient(90deg,#ffc2dd, #ff77b3);
+    color: white;
+    border-radius: var(--card-radius);
+    padding: 36px;
+    margin-bottom: 22px;
+    position: relative;
+    box-shadow: var(--shadow);
+}
+
+    .dashboard-hero .hero-title {
+        font-size: 2.25rem;
+        font-weight: 600;
+    }
+
+    .dashboard-hero .hero-sub {
+        opacity: .9;
+    }
+
+/* stat tiles */
+.stat-row .card {
+    border-radius: 10px;
+    box-shadow: none;
+    border: 1px solid rgba(0,0,0,0.04);
+    height: 108px;
+}
+
+.stat-row .stat-number {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #1b6a3b;
+}
+
+.stat-row .stat-label {
+    color: #333;
+    font-weight: 600;
+}
+
+/* left border accent */
+.stat-card-accent {
+    border-left: 6px solid var(--deep-rose);
+}
+
+/* tables */
+.table thead {
+    background: var(--muted-pink);
+    color: #222;
+    font-weight: 700;
+}
+
+.table tbody tr:nth-child(even) {
+    background: var(--alt-light);
+}
+
+.table .action-btn {
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+/* action buttons */
+.btn-deeprose {
+    background: var(--deep-rose);
+    color: #fff;
+    border-radius: 8px;
+    border: none;
+}
+
+    .btn-deeprose:hover {
+        background: #a50f5f;
+    }
+
+/* quick actions panel */
+.quick-actions .list-group-item {
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+/* badges */
+.badge-pending {
+    background: #ffd454;
+    color: #6b3f00;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+
+.badge-approved {
+    background: #d4f7dd;
+    color: #1b6a3b;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+
+.badge-rejected {
+    background: #ffdede;
+    color: #8b1b1b;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+
+/* hero role pill */
+.role-pill {
+    position: absolute;
+    right: 28px;
+    top: 28px;
+    background: #fff;
+    color: var(--deep-rose);
+    padding: 10px 18px;
+    border-radius: 40px;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}

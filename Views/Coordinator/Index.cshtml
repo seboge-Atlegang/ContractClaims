@@ -1,52 +1,54 @@
 ﻿@model IEnumerable<ContractClaims.Models.Claim>
 @{
-    ViewData["Title"] = "Pending Claims for Review";
+    ViewData["Title"] = "Pending Claims Requiring Action";
+    ViewBag.HeroTitle = $"Welcome, {User.Identity.Name}!";
+    ViewBag.HeroSubtitle = "You are logged in as Coordinator. Review pending claims below.";
+    ViewBag.RoleName = "Coordinator";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>@ViewBag.Role - Pending Claims for Review</h2>
+@Html.Partial("_DashboardHero")
 
-<div class="card p-3">
-    <table class="table table-responsive">
-        <thead style="background:#D8BFD8;color:#222;">
-            <tr>
-                <th>ID</th>
-                <th>Lecturer</th>
-                <th>Submitted</th>
-                <th>Hours / Rate</th>
-                <th>Amount</th>
-                <th>Document</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var c in Model)
-            {
-                <tr style="background:@((Model.ToList().IndexOf(c) % 2 == 0) ? "#ffffff" : "#F8F8FF")">
-                    <td>@c.Id</td>
-                    <td>@c.Lecturer?.FullName</td>
-                    <td>@c.DateSubmitted.ToString("yyyy-MM-dd")</td>
-                    <td>@c.HoursWorked / @c.HourlyRate.ToString("C")</td>
-                    <td>@(c.HoursWorked * c.HourlyRate).ToString("C")</td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(c.DocumentPath))
-                        {
-                            <a href="@c.DocumentPath" target="_blank">Download</a>
-                        }
-                        else
-                        {
-                            <span>-</span>
-                        }
-                    </td>
-                    <td>
-                        <form asp-action="Approve" method="post" style="display:inline;" asp-controller="Coordinator" asp-route-id="@c.Id">
-                            <button class="btn" style="background:#C71585;color:#fff;padding:6px 10px;border-radius:6px;">Approve</button>
+<div class="card p-3 mb-3">
+    <h5 class="mb-3">Pending Claims Requiring Action <span class="badge bg-light ms-2">@Model.Count()</span></h5>
+
+    @if (!Model.Any(c => c.Status == ContractClaims.Models.ClaimStatus.Pending))
+    {
+        <div class="p-4 text-center text-muted">No pending claims</div>
+    }
+    else
+    {
+        @foreach (var c in Model.Where(x => x.Status == ContractClaims.Models.ClaimStatus.Pending))
+        {
+            <div class="card mb-3" style="border:1px solid #F2C94C;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Claim #@c.Id</h6>
+                            <strong>@c.Lecturer?.Email</strong>
+                            <p class="mb-1">Hours: @c.HoursWorked</p>
+                            <p class="mb-1">Rate: @c.HourlyRate.ToString("C")</p>
+                            <p class="mb-1">Amount: <strong>@(c.HoursWorked * c.HourlyRate).ToString("C")</strong></p>
+                            <p class="text-muted">@c.Notes</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge badge-pending">Pending</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 d-flex">
+                        <a href="@c.DocumentPath" target="_blank" class="btn btn-outline-primary me-2">Download</a>
+
+                        <form asp-action="Approve" asp-controller="Coordinator" method="post" asp-route-id="@c.Id" class="me-2">
+                            <button class="btn" style="background:#C71585;color:#fff;border-radius:8px;">✔ Approve</button>
                         </form>
-                        <form asp-action="Reject" method="post" style="display:inline;margin-left:6px;" asp-controller="Coordinator" asp-route-id="@c.Id">
-                            <button class="btn" style="background:#F08080;color:#fff;padding:6px 10px;border-radius:6px;">Reject</button>
+
+                        <form asp-action="Reject" asp-controller="Coordinator" method="post" asp-route-id="@c.Id">
+                            <button class="btn" style="background:#F08080;color:#fff;border-radius:8px;">✖ Reject</button>
                         </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
 </div>

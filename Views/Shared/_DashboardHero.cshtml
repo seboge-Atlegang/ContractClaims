@@ -1,0 +1,33 @@
+﻿@* Parameters:
+   ViewBag.HeroTitle (string)
+   ViewBag.HeroSubtitle (string)
+   ViewBag.RoleName (string)
+   ViewBag.HeroImageUrl (string) optional
+*@
+@{
+    var title = ViewBag.HeroTitle ?? "Welcome";
+    var subtitle = ViewBag.HeroSubtitle ?? "";
+    var role = ViewBag.RoleName ?? "";
+    var heroImage = ViewBag.HeroImageUrl as string;
+}
+
+<div class="dashboard-hero">
+    @if (!string.IsNullOrEmpty(role))
+    {
+        <div class="role-pill">
+            <i class="bi bi-person-circle me-2"></i>@role
+        </div>
+    }
+    <div class="row">
+        <div class="col-md-9">
+            <div class="hero-title">@title</div>
+            <div class="hero-sub mt-2">@subtitle</div>
+        </div>
+        <div class="col-md-3 text-end d-none d-md-block">
+            @if (!string.IsNullOrEmpty(heroImage))
+            {
+                <img src="@heroImage" alt="hero" style="max-height:90px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06);" />
+            }
+        </div>
+    </div>
+</div>

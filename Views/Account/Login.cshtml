@@ -1,35 +1,45 @@
 ﻿@{
     ViewData["Title"] = "Login";
-    var seed = ViewBag.Seed as dynamic[];
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-5">
-        <div class="card card-pink p-4">
-            <h3 class="text-center mb-3">Contract Monthly Claim System</h3>
-            <p class="text-center text-muted">Use seeded credentials below for testing</p>
-
-            <form method="post" asp-controller="Account" asp-action="Login">
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input name="Email" class="form-control" />
+<div class="container login-wrapper">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card-pink">
+                <div class="text-center mb-3">
+                    <img src="/mnt/data/Screenshot 2025-11-21 133628.png" alt="logo" style="max-height:72px; border-radius:8px;" />
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <input name="Password" type="password" class="form-control" />
-                </div>
-                <button class="btn btn-pink w-100">Login</button>
-            </form>
 
-            <div class="footer-credentials mt-4">
+                <h2 class="page-title text-center">Contract Monthly Claim System</h2>
+                <p class="text-center text-muted">Use seeded credentials below for testing</p>
+
+                <form asp-controller="Account" asp-action="Login" method="post">
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input name="Email" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="Password" class="form-control" />
+                    </div>
+
+                    <div class="d-grid mb-2">
+                        <button type="submit" class="btn btn-pink">Login</button>
+                    </div>
+                </form>
+
+                <hr />
+
                 <h6>Seeded Accounts</h6>
                 <ul>
-                    @foreach (var s in seed)
-                    {
-                        <li><strong>@s.Role</strong> — @s.Email / <em>@s.Password</em></li>
-                    }
+                    <li><strong>HR</strong> — hr@company.local / HrPass!23</li>
+                    <li><strong>Manager</strong> — manager@company.local / MgrPass!23</li>
+                    <li><strong>Coordinator</strong> — coord@company.local / CoordPass!23</li>
+                    <li><strong>Lecturer</strong> — lecturer1@company.local / LectPass!23</li>
                 </ul>
-                <small>HR user is configured as a superuser (has all roles)</small>
             </div>
         </div>
     </div>

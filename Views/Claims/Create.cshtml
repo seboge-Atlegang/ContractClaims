@@ -3,13 +3,11 @@
     ViewData["Title"] = "Submit New Contract Claim";
 }
 
-<div class="card card-pink p-4" style="border: 1px solid #D8BFD8;">
-    <h2 class="mb-3">Submit New Contract Claim</h2>
-
-    <!-- Show validation errors -->
-    <div asp-validation-summary="All" class="alert alert-danger"></div>
+<div class="card-pink">
+    <h3>Submit New Contract Claim</h3>
 
     <form asp-action="Create" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
         <div class="mb-3">
             <label class="form-label">Hours Worked</label>
@@ -30,8 +28,8 @@
 
         <div class="mb-3">
             <label class="form-label">Upload Supporting Document</label>
-            <input type="file" name="upload" class="form-control" required />
-            <small class="text-muted">Allowed: .pdf, .docx, .xlsx (Max 5MB)</small>
+            <input type="file" name="upload" class="form-control" />
+            <small class="text-muted">Allowed: .pdf/.docx/.xlsx. Max 5MB.</small>
         </div>
 
         <div class="mb-3">
@@ -39,24 +37,23 @@
             <textarea asp-for="Notes" class="form-control"></textarea>
         </div>
 
-        <button type="submit" class="btn btn-pink btn-lg">Submit Claim</button>
+        <div class="d-grid">
+            <button class="btn btn-pink">Submit Claim</button>
+        </div>
     </form>
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         function calc() {
-            let h = parseFloat(document.querySelector('[name="HoursWorked"]').value.replace(",", ".")) || 0;
-            let r = parseFloat(document.querySelector('[name="HourlyRate"]').value.replace(",", ".")) || 0;
+            var h = parseFloat(document.querySelector('[name="HoursWorked"]').value || 0) || 0;
+            var r = parseFloat(document.querySelector('[name="HourlyRate"]').value || 0) || 0;
             document.getElementById('amount').value = (h * r).toFixed(2);
         }
-
-        document.addEventListener("input", function (e) {
-            if (e.target.name === "HoursWorked" || e.target.name === "HourlyRate") {
-                calc();
-            }
+        document.addEventListener('input', function(e){
+            if (e.target.name === 'HoursWorked' || e.target.name === 'HourlyRate') calc();
         });
-
         calc();
     </script>
 }

@@ -1,5 +1,6 @@
 ﻿using ContractClaims.Data;
 using ContractClaims.Models;
+using ContractClaims.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,138 +14,216 @@ namespace ContractClaims.Controllers
         private readonly ApplicationDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly QuestPdfReportBuilder _pdfBuilder;
+        private readonly IWebHostEnvironment _env;
 
-        public HRController(ApplicationDbContext db,
+        public HRController(
+            ApplicationDbContext db,
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            QuestPdfReportBuilder pdfBuilder,
+            IWebHostEnvironment env)
         {
             _db = db;
             _userManager = userManager;
             _roleManager = roleManager;
+            _pdfBuilder = pdfBuilder;
+            _env = env;
         }
 
-        // -------------------------------------------------------------
-        // HR DASHBOARD
-        // -------------------------------------------------------------
+        // ====================
+        // HR Dashboard
+        // ====================
         public async Task<IActionResult> Dashboard()
         {
-            var allClaims = await _db.Claims
+            ViewBag.TotalUsers = await _userManager.Users.CountAsync();
+            ViewBag.TotalClaims = await _db.Claims.CountAsync();
+            ViewBag.PendingClaims = await _db.Claims.CountAsync(c => c.Status == ClaimStatus.Pending);
+            ViewBag.ApprovedClaims = await _db.Claims.CountAsync(c => c.Status == ClaimStatus.Approved);
+
+            ViewBag.RecentClaims = await _db.Claims
                 .Include(c => c.Lecturer)
                 .OrderByDescending(c => c.DateSubmitted)
+                .Take(8)
                 .ToListAsync();
 
-            ViewBag.TotalClaims = allClaims.Count;
-            ViewBag.PendingClaims = allClaims.Count(c => c.Status == ClaimStatus.Pending);
-            ViewBag.ApprovedClaims = allClaims.Count(c => c.Status == ClaimStatus.Approved);
-
-            if (allClaims.Count > 0)
-                ViewBag.ApprovalRate = $"{(int)((double)ViewBag.ApprovedClaims / allClaims.Count * 100)}%";
-            else
-                ViewBag.ApprovalRate = "0%";
-
-            ViewBag.RecentClaims = allClaims.Take(8).ToList();
-
-            var allUsers = await _userManager.Users.ToListAsync();
-            return View("Dashboard", allUsers);
-        }
-
-        // -------------------------------------------------------------
-        // USER LIST
-        // -------------------------------------------------------------
-        public async Task<IActionResult> Users()
-        {
-            var users = await _userManager.Users.ToListAsync();
+            var users = await _userManager.Users.OrderBy(u => u.Email).ToListAsync();
             return View(users);
         }
 
-        // -------------------------------------------------------------
-        // ADD NEW USER (GET)
-        // -------------------------------------------------------------
+        // ====================
+        // Users List
+        // ====================
+        public async Task<IActionResult> Users(string q = null)
+        {
+            var query = _userManager.Users.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(q))
+                query = query.Where(u => u.Email.Contains(q)
+                    || u.FirstName.Contains(q)
+                    || u.LastName.Contains(q));
+
+            var users = await query.OrderBy(u => u.Email).ToListAsync();
+            return View(users);
+        }
+
+        // ====================
+        // Create User (GET)
+        // ====================
         public IActionResult CreateUser()
         {
             ViewBag.Roles = new List<string> { "Lecturer", "Coordinator", "Manager", "HR" };
             return View();
         }
 
-        // -------------------------------------------------------------
-        // ADD NEW USER (POST)
-        // -------------------------------------------------------------
+        // ====================
+        // Create User (POST)
+        // ====================
         [HttpPost]
-        public async Task<IActionResult> CreateUser(string firstName, string lastName, string email, string role, string password)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUser(CreateUserVM model)
         {
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(role))
-            {
-                TempData["Error"] = "Please fill in all required fields.";
-                return RedirectToAction("CreateUser");
-            }
+            ViewBag.Roles = new List<string> { "Lecturer", "Coordinator", "Manager", "HR" };
+
+            if (!ModelState.IsValid)
+                return View(model);
 
             var user = new ApplicationUser
             {
-                UserName = email,
-                Email = email,
-                FirstName = firstName,
-                LastName = lastName
+                UserName = model.Email,
+                Email = model.Email,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                HourlyRate = model.HourlyRate
             };
 
-            var result = await _userManager.CreateAsync(user, password);
+            var result = await _userManager.CreateAsync(user, model.Password);
 
             if (!result.Succeeded)
             {
-                TempData["Error"] = string.Join(" | ", result.Errors.Select(e => e.Description));
-                return RedirectToAction("CreateUser");
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError("", error.Description);
+                return View(model);
             }
 
             // Ensure role exists
-            if (!await _roleManager.RoleExistsAsync(role))
-                await _roleManager.CreateAsync(new IdentityRole(role));
+            if (!await _roleManager.RoleExistsAsync(model.Role))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(model.Role));
+            }
 
-            // Add role to user
-            await _userManager.AddToRoleAsync(user, role);
+            // Assign role
+            var addRole = await _userManager.AddToRoleAsync(user, model.Role);
 
-            TempData["Success"] = "User account created successfully.";
-            return RedirectToAction("Users");
+            if (!addRole.Succeeded)
+            {
+                foreach (var error in addRole.Errors)
+                    ModelState.AddModelError("", error.Description);
+                return View(model);
+            }
+
+            TempData["Success"] = "User created successfully!";
+            return RedirectToAction(nameof(Users));
         }
 
-        // -------------------------------------------------------------
-        // REPORT PAGE
-        // -------------------------------------------------------------
-        public IActionResult Reports()
+        // ====================
+        // Edit User
+        // ====================
+        public async Task<IActionResult> EditUser(string id)
         {
-            return View();
+            if (string.IsNullOrWhiteSpace(id)) return NotFound();
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var vm = new EditUserVM
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                HourlyRate = user.HourlyRate
+            };
+
+            return View(vm);
         }
 
-        // -------------------------------------------------------------
-        // PDF GENERATION
-        // -------------------------------------------------------------
         [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditUser(EditUserVM model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null) return NotFound();
+
+            user.Email = model.Email;
+            user.UserName = model.Email;
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.HourlyRate = model.HourlyRate;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError("", error.Description);
+                return View(model);
+            }
+
+            TempData["Success"] = "User updated successfully!";
+            return RedirectToAction(nameof(Users));
+        }
+
+
+        // ====================
+        // Delete User
+        // ====================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            await _userManager.DeleteAsync(user);
+
+            TempData["Success"] = "User deleted.";
+            return RedirectToAction(nameof(Users));
+        }
+
+        // ====================
+        // Reports
+        // ====================
+        public IActionResult Reports() => View();
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateApprovedClaimsPdf(DateTime from, DateTime to)
         {
-            var approvedClaims = await _db.Claims
+            var start = from.Date;
+            var end = to.Date.AddDays(1).AddTicks(-1);
+
+            var claims = await _db.Claims
                 .Include(c => c.Lecturer)
                 .Where(c => c.Status == ClaimStatus.Approved &&
-                    c.DateSubmitted.Date >= from.Date &&
-                    c.DateSubmitted.Date <= to.Date)
+                            c.DateSubmitted >= start &&
+                            c.DateSubmitted <= end)
                 .ToListAsync();
 
-            if (!approvedClaims.Any())
+            if (!claims.Any())
             {
-                TempData["Error"] = "No approved claims found for this date range.";
-                return RedirectToAction("Reports");
+                TempData["Error"] = "No approved claims in this date range.";
+                return RedirectToAction(nameof(Reports));
             }
 
-            string output = "Approved Claims Report\n\n";
+            // FIXED: load logo from wwwroot/images
+            string logoPath = Path.Combine(_env.WebRootPath, "images/logo.png");
 
-            foreach (var claim in approvedClaims)
-            {
-                output += $"Lecturer: {claim.Lecturer?.Email}\n" +
-                          $"Hours: {claim.HoursWorked}\n" +
-                          $"Rate: {claim.HourlyRate}\n" +
-                          $"Amount: {(claim.HoursWorked * claim.HourlyRate):C}\n" +
-                          $"Date: {claim.DateSubmitted}\n\n";
-            }
+            var pdf = _pdfBuilder.BuildApprovedClaimsReport(claims, start, end, logoPath);
 
-            var bytes = System.Text.Encoding.UTF8.GetBytes(output);
-            return File(bytes, "text/plain", "ApprovedClaimsReport.txt");
+            return File(pdf, "application/pdf", $"ApprovedClaims_{start:yyyyMMdd}_{end:yyyyMMdd}.pdf");
         }
     }
 }

@@ -1,0 +1,38 @@
+﻿@model IEnumerable<ContractClaims.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Users</h2>
+    <a class="btn btn-pink" asp-action="CreateUser">+ Create User</a>
+</div>
+
+<form method="get" class="mb-3">
+    <div class="input-group">
+        <input name="q" value="@Context.Request.Query["q"]" class="form-control" placeholder="Search by name or email" />
+        <button class="btn btn-outline-secondary" type="submit">Search</button>
+    </div>
+</form>
+
+<div class="card-pink">
+    <table class="table mb-0">
+        <thead><tr><th>Email</th><th>Name</th><th>Hourly Rate</th><th></th></tr></thead>
+        <tbody>
+            @foreach (var u in Model)
+            {
+                <tr>
+                    <td>@u.Email</td>
+                    <td>@u.FullName</td>
+                    <td>@(u.HourlyRate.HasValue ? u.HourlyRate.Value.ToString("C") : "-")</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary" asp-action="EditUser" asp-route-id="@u.Id">Edit</a>
+                        <form asp-action="DeleteUser" asp-route-id="@u.Id" method="post" style="display:inline" onsubmit="return confirm('Delete user?');">
+                            <button class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

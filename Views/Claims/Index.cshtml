@@ -3,48 +3,25 @@
     ViewData["Title"] = "My Claims";
 }
 
-<h2>My Claims</h2>
+<div class="card-pink">
+    <h3>My Claims</h3>
 
-<div class="mb-3">
-    <a class="btn btn-pink btn-lg" href="/Claims/Create">Submit New Claim</a>
-</div>
-
-<div class="card card-pink p-3">
-    <table class="table table-responsive">
-        <thead style="background:#D8BFD8;color:#222;">
-            <tr>
-                <th>ID</th>
-                <th>Date Submitted</th>
-                <th>Lecturer</th>
-                <th>Hours</th>
-                <th>Rate</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Document</th>
-            </tr>
-        </thead>
+    <table class="table mt-3">
+        <thead><tr><th>ID</th><th>Amount</th><th>Hours</th><th>Rate</th><th>Status</th><th>Date</th><th>Document</th></tr></thead>
         <tbody>
             @foreach (var c in Model)
             {
-                var statusClass = c.Status == ContractClaims.Models.ClaimStatus.Pending ? "bg-pending"
-                : c.Status == ContractClaims.Models.ClaimStatus.Approved ? "bg-approved"
-                : "bg-rejected";
-                <tr style="background:@((Model.ToList().IndexOf(c) % 2 == 0) ? "#ffffff" : "#F8F8FF")">
+                <tr>
                     <td>@c.Id</td>
-                    <td>@c.DateSubmitted.ToString("yyyy-MM-dd")</td>
-                    <td>@c.Lecturer?.FullName</td>
+                    <td>@(c.HoursWorked * c.HourlyRate).ToString("C")</td>
                     <td>@c.HoursWorked</td>
                     <td>@c.HourlyRate.ToString("C")</td>
-                    <td>@(c.HoursWorked * c.HourlyRate).ToString("C")</td>
-                    <td><span class="badge @statusClass">@c.Status</span></td>
+                    <td>@c.Status</td>
+                    <td>@c.DateSubmitted.ToString("yyyy-MM-dd")</td>
                     <td>
                         @if (!string.IsNullOrEmpty(c.DocumentPath))
                         {
-                            <a href="@c.DocumentPath" target="_blank">Download</a>
-                        }
-                        else
-                        {
-                            <span>-</span>
+                            <a class="btn btn-sm btn-outline-primary" href="@c.DocumentPath">Download</a>
                         }
                     </td>
                 </tr>

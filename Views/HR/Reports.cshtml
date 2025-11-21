@@ -1,21 +1,22 @@
 ﻿@{
-    ViewData["Title"] = "Claim Reports Generator";
+    ViewData["Title"] = "Reports";
 }
 
-<div class="card card-pink p-4" style="border:1px solid #D8BFD8;">
-    <h3>Claim Reports Generator</h3>
-
-    <form asp-action="GenerateApprovedClaimsPdf" method="post" class="row g-2">
-        <div class="col-auto">
-            <label class="form-label">From</label>
-            <input type="date" name="from" class="form-control" />
-        </div>
-        <div class="col-auto">
-            <label class="form-label">To</label>
-            <input type="date" name="to" class="form-control" />
-        </div>
-        <div class="col-auto align-self-end">
-            <button class="btn btn-pink">Generate Approved Claims PDF</button>
+<div class="card-pink">
+    <h3>Claim Reports</h3>
+    <form asp-action="GenerateApprovedClaimsPdf" method="post">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">From</label>
+                <input type="date" name="from" class="form-control" required />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">To</label>
+                <input type="date" name="to" class="form-control" required />
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-pink">Generate Approved Claims PDF</button>
+            </div>
         </div>
     </form>
 </div>

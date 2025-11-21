@@ -1,63 +1,47 @@
 ﻿@model IEnumerable<ContractClaims.Models.ApplicationUser>
 @{
     ViewData["Title"] = "HR Dashboard";
-    ViewBag.HeroTitle = "Admin Dashboard";
-    ViewBag.HeroSubtitle = $"Welcome back, {User.Identity.Name}! Manage the entire system from here.";
-    ViewBag.RoleName = "Administrator";
-    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@Html.Partial("_DashboardHero")
-
-<div class="row stat-row mb-4">
-    <div class="col-md-3"><div class="card stat-card-accent p-3"><div class="stat-label">TOTAL USERS</div><div class="stat-number">@Model.Count()</div></div></div>
-    <div class="col-md-3"><div class="card stat-card-accent p-3"><div class="stat-label">TOTAL CLAIMS</div><div class="stat-number">@ViewBag.TotalClaims ?? 0</div></div></div>
-    <div class="col-md-3"><div class="card stat-card-accent p-3"><div class="stat-label">PENDING CLAIMS</div><div class="stat-number">@ViewBag.PendingClaims ?? 0</div></div></div>
-    <div class="col-md-3"><div class="card stat-card-accent p-3"><div class="stat-label">APPROVAL RATE</div><div class="stat-number">@ViewBag.ApprovalRate ?? "0%"</div></div></div>
+<div class="hero d-flex justify-content-between align-items-center">
+    <div>
+        <h2 class="page-title">HR Administration</h2>
+        <p class="text-muted">Manage users, claims and reports</p>
+    </div>
+    <div>
+        <span class="role-pill">HR</span>
+    </div>
 </div>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card p-3">
-            <h5>Recent Claims Activity</h5>
-            <table class="table mt-3">
-                <thead><tr><th>ID</th><th>Lecturer</th><th>Amount</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
-                <tbody>
-                    @foreach (var claim in ViewBag.RecentClaims as List<ContractClaims.Models.Claim> ?? new List<ContractClaims.Models.Claim>())
-                    {
-                        <tr>
-                            <td>#@claim.Id</td>
-                            <td>@claim.Lecturer?.Email</td>
-                            <td>@(claim.HoursWorked * claim.HourlyRate).ToString("C")</td>
-                            <td>
-                                @if (claim.Status == ContractClaims.Models.ClaimStatus.Pending)
-                                {
-                                    <span class="badge-pending">Pending</span>
-                                }
-                                else if (claim.Status == ContractClaims.Models.ClaimStatus.Approved)
-                                {
-                                    <span class="badge-approved">Approved</span>
-                                }
-                                else
-                                {
-                                    <span class="badge-rejected">Rejected</span>
-                                }
-                            </td>
-                            <td>@claim.DateSubmitted.ToString("MMM d, HH:mm")</td>
-                            <td><a class="btn btn-outline-primary" href="/Claims/Details/@claim.Id"><i class="bi bi-eye"></i></a></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card p-3"><div class="stat-label">TOTAL USERS</div><div class="stat-number">@ViewBag.TotalUsers</div></div></div>
+    <div class="col-md-3"><div class="stat-card p-3"><div class="stat-label">TOTAL CLAIMS</div><div class="stat-number">@ViewBag.TotalClaims</div></div></div>
+    <div class="col-md-3"><div class="stat-card p-3"><div class="stat-label">PENDING CLAIMS</div><div class="stat-number">@ViewBag.PendingClaims</div></div></div>
+    <div class="col-md-3"><div class="stat-card p-3"><div class="stat-label">APPROVED</div><div class="stat-number">@ViewBag.ApprovedClaims</div></div></div>
+</div>
 
-    <div class="col-md-4">
-        <div class="card p-3">
-            <h5>Quick Actions</h5>
-            <a href="/Claims/Create" class="btn btn-deeprose w-100 mb-2">Submit New Claim</a>
-            <a href="/Claims/Index" class="btn btn-outline-primary w-100 mb-2">View My Claims</a>
-            <a href="/HR/Reports" class="btn btn-outline-warning w-100">Generate Reports</a>
-        </div>
+<div class="d-flex justify-content-between mb-3">
+    <div>
+        <a class="btn btn-pink" asp-action="Users">Manage Users</a>
+        <a class="btn btn-outline-secondary" asp-action="Reports">Reports</a>
     </div>
+</div>
+
+<div class="card-pink">
+    <h5>Recent Claims</h5>
+    <table class="table mt-3">
+        <thead><tr><th>ID</th><th>Lecturer</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>
+            @foreach (var c in ViewBag.RecentClaims as List<ContractClaims.Models.Claim>)
+            {
+                <tr>
+                    <td>@c.Id</td>
+                    <td>@c.Lecturer?.FullName</td>
+                    <td>@(c.HoursWorked * c.HourlyRate).ToString("C")</td>
+                    <td>@c.Status</td>
+                    <td>@c.DateSubmitted.ToString("yyyy-MM-dd")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>

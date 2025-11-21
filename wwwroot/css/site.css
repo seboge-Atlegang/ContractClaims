@@ -1,31 +1,135 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+/* site.css — Soft Professional Pink theme */
+:root {
+    --primary: #C71585;
+    --soft: #D8BFD8;
+    --bg: #F8F0F9;
+    --text: #333;
+    --card-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    --rounded: 12px;
 }
 
 body {
-  margin-bottom: 60px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/* Navbar */
+.navbar-custom {
+    background: #fff;
+    border-bottom: 3px solid var(--soft);
+    padding: 14px 24px;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+.navbar-brand {
+    color: var(--primary) !important;
+    font-weight: 700;
+    font-size: 24px;
+}
+
+.nav-link {
+    color: var(--text) !important;
+    font-weight: 500;
+}
+
+    .nav-link:hover {
+        color: var(--primary) !important;
+    }
+
+/* Buttons */
+.btn-pink {
+    background: var(--primary);
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 16px;
+    border: none;
+}
+
+    .btn-pink:hover {
+        background: #9f106e;
+        color: #fff;
+    }
+
+/* Cards */
+.card-pink {
+    background: #fff;
+    border: 1px solid var(--soft);
+    border-radius: var(--rounded);
+    box-shadow: var(--card-shadow);
+    padding: 22px;
+}
+
+/* Hero */
+.hero {
+    background: linear-gradient(90deg, rgba(216,191,216,0.15), rgba(199,21,133,0.08));
+    border-radius: var(--rounded);
+    padding: 28px;
+    margin-bottom: 18px;
+}
+
+/* Stat cards */
+.stat-card {
+    background: #fff;
+    border: 1px solid var(--soft);
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: var(--card-shadow);
+}
+
+.stat-label {
+    color: #666;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+}
+
+.stat-number {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 28px;
+}
+
+/* Tables */
+.table thead {
+    background: var(--soft);
+    color: #222;
+    font-weight: 700;
+}
+
+.table tbody tr td {
+    vertical-align: middle;
+}
+
+/* Forms */
+.form-control {
+    border-radius: 8px;
+}
+
+/* Login card centering */
+.login-wrapper {
+    margin-top: 60px;
+}
+
+/* Misc */
+.page-title {
+    color: var(--primary);
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.role-pill {
+    background: #fff;
+    border-radius: 20px;
+    padding: 8px 16px;
+    border: 1px solid var(--soft);
+    color: var(--primary);
+    font-weight: 700;
+    display: inline-block;
+}
+
+.footer-small {
+    font-size: 13px;
+    color: #777;
+    margin-top: 32px;
 }
